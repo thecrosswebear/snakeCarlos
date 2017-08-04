@@ -37,6 +37,9 @@ class Cell(pygame.sprite.Sprite):
 		self.rect.x = x
 		self.rect.y = y
 
+	def __str__(self):
+		print "\tcell (%d,%d)"% (self.rect.x, self.rect.y)
+
 class Snake (object):
 
 	def __init__(self, startX = 150, startY= 150):

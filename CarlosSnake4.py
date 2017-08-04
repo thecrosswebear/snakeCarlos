@@ -3,7 +3,7 @@ import random
 
 pygame.init()
 
-SIZE = (800,800)
+SIZE = (1200,800)
 BLACK = [0,0,0]
 WHITE = [255,255,255]
 GREEN = [0,255,0]
@@ -37,6 +37,9 @@ class Cell(pygame.sprite.Sprite):
 		self.rect.x = x
 		self.rect.y = y
 
+	def __str__(self):
+		return "\tcell (%d,%d)\n"% (self.rect.x, self.rect.y)
+
 class Snake (object):
 
 	def __init__(self, startX = 150, startY= 150, direction = "right"):
@@ -54,30 +57,55 @@ class Snake (object):
 	
 	def createTail(self):
 		tmp = self.startX
-		for i in range (0,4):
+		for i in range (0,8):
 			cell = Cell(tmp- DIMENSION_CELL - self.spaceBetweenCells, self.startY)
 			tmp = tmp - DIMENSION_CELL - self.spaceBetweenCells
 			self.coord.append(cell)
 			self.sprite_snake_list.add(cell)
 			all_sprites_list.add(cell)
+		#print self
+
+	def isAtWall(self):
+		if self.head.rect.x >= SIZE[0]:
+			self.head.rect.x = SIZE[0] - self.step
+			return True
+		elif self.head.rect.x < 0:
+			self.head.rect.x = 0
+			return True
+		elif self.head.rect.y >= SIZE[1]:
+			self.head.rect.y = SIZE[1] - self.step
+			return True
+		elif self.head.rect.y < 0:
+			self.head.rect.y = 0
+			return True
+		else:
+			return False
 
 
 	def update(self):
-		# update previous positions
-		for i in range(len(self.coord)-1,0,-1):
-			self.coord[i].rect.x = self.coord[i-1].rect.x
-           	self.coord[i].rect.y = self.coord[i-1].rect.y
- 		# update position of head of snake
- 		if direction == "left":
- 			self.coord[0].rect.x = self.coord[0].rect.x - self.step - self.spaceBetweenCells
- 		if self.direction == "right":
- 			self.coord[0].rect.x = self.coord[0].rect.x + self.step + self.spaceBetweenCells
- 		if direction == "down":
- 			self.coord[0].rect.y = self.coord[0].rect.y + self.step + self.spaceBetweenCells
- 		if direction == "up":
- 			self.coord[0].rect.y = self.coord[0].rect.y - self.step - self.spaceBetweenCells
 
- 		print "head: (%d, %d)" % (self.coord[0].rect.x, self.coord[0].rect.y)
+		if not self.isAtWall():
+		# update previous positions
+			for i in range(len(self.coord)-1,0,-1):
+				self.coord[i].rect.x = self.coord[i-1].rect.x
+				self.coord[i].rect.y = self.coord[i-1].rect.y     	
+	           	
+		# update position of head of snake
+	 		if self.direction == "left":
+	 			self.coord[0].rect.x = self.coord[0].rect.x - self.step - self.spaceBetweenCells
+	 		if self.direction == "right":
+	 			self.coord[0].rect.x = self.coord[0].rect.x + self.step + self.spaceBetweenCells
+	 		if self.direction == "down":
+	 			self.coord[0].rect.y = self.coord[0].rect.y + self.step + self.spaceBetweenCells
+	 		if self.direction == "up":
+	 			self.coord[0].rect.y = self.coord[0].rect.y - self.step - self.spaceBetweenCells
+			
+ 	def __str__(self):
+ 		tmp = ""
+ 		for i in range(0,len(self.coord)-1):
+ 			print self.coord[i]
+ 		return tmp
+
 
 class Food(pygame.sprite.Sprite):
 
@@ -91,43 +119,15 @@ class Food(pygame.sprite.Sprite):
 
 done = False
 
-"""
-snake = []
-startX =350
-startY = 150
-
-head = Cell(startX,startY)
-snake.append(head)
-all_sprites_list.add(head)
-
-#creation du corps du serpent
-for i in range (0,4):
-	cell = Cell(startX- DIMENSION_CELL - spaceBetweenCells, startY)
-	startX = startX - DIMENSION_CELL - spaceBetweenCells
-	snake.append(cell)
-	all_sprites_list.add(cell)
-
-def update():
-# update previous positions
-    for i in range(len(snake)-1,0,-1):
-        #print "self.x[" + str(i) + "] = self.x[" + str(i-1) + "]"
-        snake[i].rect.x = snake[i-1].rect.x
-        snake[i].rect.y = snake[i-1].rect.y
-        
-    # update position of head of snake
-    if direction == "left":
-        snake[0].rect.x = snake[0].rect.x - STEP - spaceBetweenCells
-    if direction == "right":
-        snake[0].rect.x = snake[0].rect.x + STEP + spaceBetweenCells
-    if direction == "down":
-        snake[0].rect.y = snake[0].rect.y + STEP + spaceBetweenCells
-    if direction == "up":
-        snake[0].rect.y = snake[0].rect.y - STEP - spaceBetweenCells
-"""
 snake = Snake() 
 snake.createTail()
 
-print "lenght of snake: ", len(snake.coord)
+food = Food()
+food.rect.x = random.randrange(SIZE[0])
+food.rect.y = random.randrange(SIZE[1])
+
+food_list.add(food)
+all_sprites_list.add(food)
 
 while not done:
 	for event in pygame.event.get():
@@ -145,10 +145,18 @@ while not done:
 		snake.direction = "up"
 	elif keys[pygame.K_DOWN] and snake.direction != "up":
 		snake.direction = "down"
+	elif keys[pygame.K_5]:
+		print "=========================="
+		print len(snake.coord)
+		#print snake
 
-	print snake.direction
-	print "lenght of snake: ", len(snake.coord)
+	#print snake.direction
+	#print "lenght of snake: ", len(snake.coord)
 	snake.update()
+	#print snake
+	if pygame.sprite.spritecollide(snake.coord[0], food_list, False):
+		food.rect.x = random.randrange(SIZE[0] - food.largeur)
+		food.rect.y = random.randrange(SIZE[1] - food.largeur)
 
 	screen.fill(BLACK)
 	all_sprites_list.draw(screen)
