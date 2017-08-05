@@ -12,6 +12,8 @@ WHITE = [255,255,255]
 GREEN = [0,255,0]
 BLUE = [0,0,255]
 
+
+FONT = pygame.font.Font("Data/space_invaders.ttf", 40)
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
@@ -52,21 +54,32 @@ class Snake (object):
 		self.startY = startY
 		self.head = Cell(self.startX, self.startY)
 		self.coord.append(self.head)
-		self.sprite_snake_list.add(self.head)
+		#self.sprite_snake_list.add(self.head)
 		all_sprites_list.add(self.head)
 		self.direction = direction
 		self.step = DIMENSION_CELL
 		self.spaceBetweenCells = 10
+		self.score = 0
+		self.previousTail = None
+
+	def explose(self):
+		boom = FONT.render("Boom!!!", True, WHITE)
+		#screen.blit(theScoreP1, 50, 5)
+		screen.blit(boom, (SIZE[0]/2, SIZE[1]/2))
+
 	
 	def createTail(self):
 		tmp = self.startX
-		for i in range (0,8):
+		for i in range (0,4):
 			cell = Cell(tmp- DIMENSION_CELL - self.spaceBetweenCells, self.startY)
 			tmp = tmp - DIMENSION_CELL - self.spaceBetweenCells
 			self.coord.append(cell)
 			self.sprite_snake_list.add(cell)
 			all_sprites_list.add(cell)
 		#print self
+
+	def hitWallBoom(self):
+		pass
 
 	def isAtWall(self):
 		if self.head.rect.x >= SIZE[0]:
@@ -84,25 +97,26 @@ class Snake (object):
 		else:
 			return False
 
-
 	def update(self):
 
-		if not self.isAtWall():
+		#if not self.isAtWall():
 		# update previous positions
-			for i in range(len(self.coord)-1,0,-1):
-				self.coord[i].rect.x = self.coord[i-1].rect.x
-				self.coord[i].rect.y = self.coord[i-1].rect.y     	
-	           	
-		# update position of head of snake
-	 		if self.direction == "left":
-	 			self.coord[0].rect.x = self.coord[0].rect.x - self.step - self.spaceBetweenCells
-	 		if self.direction == "right":
-	 			self.coord[0].rect.x = self.coord[0].rect.x + self.step + self.spaceBetweenCells
-	 		if self.direction == "down":
-	 			self.coord[0].rect.y = self.coord[0].rect.y + self.step + self.spaceBetweenCells
-	 		if self.direction == "up":
-	 			self.coord[0].rect.y = self.coord[0].rect.y - self.step - self.spaceBetweenCells
-			
+			#self.previousTail = Cell(self.coord[len(self.coord) -1].rect.x, self.coord[len(self.coord) -1].rect.y) 
+		self.previousTail = (self.coord[len(self.coord) -1].rect.x, self.coord[len(self.coord) -1].rect.y)  
+		for i in range(len(self.coord)-1,0,-1):
+			self.coord[i].rect.x = self.coord[i-1].rect.x
+			self.coord[i].rect.y = self.coord[i-1].rect.y     	
+           	
+	# update position of head of snake
+ 		if self.direction == "left":
+ 			self.coord[0].rect.x = self.coord[0].rect.x - self.step - self.spaceBetweenCells
+ 		if self.direction == "right":
+ 			self.coord[0].rect.x = self.coord[0].rect.x + self.step + self.spaceBetweenCells
+ 		if self.direction == "down":
+ 			self.coord[0].rect.y = self.coord[0].rect.y + self.step + self.spaceBetweenCells
+ 		if self.direction == "up":
+ 			self.coord[0].rect.y = self.coord[0].rect.y - self.step - self.spaceBetweenCells
+		
  	def __str__(self):
  		tmp = ""
  		for i in range(0,len(self.coord)-1):
@@ -123,7 +137,7 @@ class Food(pygame.sprite.Sprite):
 done = False
 
 snake = Snake() 
-snake.createTail()
+#snake.createTail()
 
 food = Food()
 food.rect.x = random.randrange(SIZE[0])
@@ -133,6 +147,9 @@ food_list.add(food)
 all_sprites_list.add(food)
 
 while not done:
+
+	screen.fill(BLACK)
+
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			done = True
@@ -155,16 +172,41 @@ while not done:
 
 	#print snake.direction
 	#print "lenght of snake: ", len(snake.coord)
-	snake.update()
+	#snake.update()
+	if snake.isAtWall():
+		snake.explose()
+		print"boom in wall!"
+		#sprite_snake_list.kill()
+	else:
+		snake.update()
 	#print snake
 	if pygame.sprite.spritecollide(snake.coord[0], food_list, False):
-		food.rect.x = random.randrange(SIZE[0] - food.largeur)
-		food.rect.y = random.randrange(SIZE[1] - food.largeur)
+		coordFoodValid = False
+		print "lenght of snake: ", len(snake.coord)
+		newCell = Cell(snake.previousTail[0], snake.previousTail[1])
+		snake.coord.append(newCell)
+		snake.sprite_snake_list.add(newCell)
+		all_sprites_list.add(newCell)
+		while not coordFoodValid:
+			food.rect.x = random.randrange(SIZE[0] - food.largeur)
+			food.rect.y = random.randrange(SIZE[1] - food.largeur)
+			coordTmp = food.rect.x, food.rect.y
+			if coordTmp not in snake.coord:
+				coordFoodValid = True
+		snake.score += 10
 
-	screen.fill(BLACK)
+
+	if pygame.sprite.spritecollide(snake.coord[0], snake.sprite_snake_list, False):
+		print"boom in snake!"
+
+	
 	all_sprites_list.draw(screen)
 
 	#pygame.display.update()
+
+	theScoreP1 = FONT.render(str(snake.score), True, WHITE)
+	#screen.blit(theScoreP1, 50, 5)
+	screen.blit(theScoreP1, (SIZE[0] - DIMENSION_CELL*1.5 , 10))
 	pygame.display.flip()
 
 	# Limit to 60 frames per second

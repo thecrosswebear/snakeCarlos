@@ -52,6 +52,10 @@ class Cell(pygame.sprite.Sprite):
 	def move(self, direction):
 		pass
 
+	def update(self, x, y):
+		self.rect.x = x
+		self.rect.y = y 
+
 	def move(self):
 
 		if self.motionDirection == "l":
