@@ -45,6 +45,8 @@ class Snake(object):
 	def __init__(self):
 		serpent = []
 
+	def update(self):
+
 
 class Tail(pygame.sprite.Sprite):
 	

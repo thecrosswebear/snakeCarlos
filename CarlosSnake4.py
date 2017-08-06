@@ -1,6 +1,5 @@
 #je fais un test de git mon grand
 
-
 import pygame
 import random
 
@@ -62,15 +61,24 @@ class Snake (object):
 		self.score = 0
 		self.previousTail = None
 
-	def explose(self):
-		boom = FONT.render("Boom!!!", True, WHITE)
+	def explose(self, message):
+		boom = FONT.render(message, True, WHITE)
 		#screen.blit(theScoreP1, 50, 5)
 		screen.blit(boom, (SIZE[0]/2, SIZE[1]/2))
+		self.killSnake()
 
-	
+	def killSnake(self):
+		#for cell in self.coord:
+		#	cell.kill()
+		for cell in self.sprite_snake_list:
+			cell.kill()
+		self.head.kill()
+
+
+
 	def createTail(self):
 		tmp = self.startX
-		for i in range (0,4):
+		for i in range (0,7):
 			cell = Cell(tmp- DIMENSION_CELL - self.spaceBetweenCells, self.startY)
 			tmp = tmp - DIMENSION_CELL - self.spaceBetweenCells
 			self.coord.append(cell)
@@ -78,9 +86,7 @@ class Snake (object):
 			all_sprites_list.add(cell)
 		#print self
 
-	def hitWallBoom(self):
-		pass
-
+	
 	def isAtWall(self):
 		if self.head.rect.x >= SIZE[0]:
 			self.head.rect.x = SIZE[0] - self.step
@@ -137,7 +143,7 @@ class Food(pygame.sprite.Sprite):
 done = False
 
 snake = Snake() 
-#snake.createTail()
+snake.createTail()
 
 food = Food()
 food.rect.x = random.randrange(SIZE[0])
@@ -168,18 +174,19 @@ while not done:
 	elif keys[pygame.K_5]:
 		print "=========================="
 		print len(snake.coord)
-		#print snake
+		
 
-	#print snake.direction
-	#print "lenght of snake: ", len(snake.coord)
-	#snake.update()
+	if pygame.sprite.spritecollide(snake.coord[0], snake.sprite_snake_list, False):
+		print"boom in snake!"
+		snake.explose("Boom in snake!!!")
+
 	if snake.isAtWall():
-		snake.explose()
+		snake.explose("Boom in Wall!!!")
 		print"boom in wall!"
-		#sprite_snake_list.kill()
+		
 	else:
 		snake.update()
-	#print snake
+	
 	if pygame.sprite.spritecollide(snake.coord[0], food_list, False):
 		coordFoodValid = False
 		print "lenght of snake: ", len(snake.coord)
@@ -195,25 +202,14 @@ while not done:
 				coordFoodValid = True
 		snake.score += 10
 
-
-	if pygame.sprite.spritecollide(snake.coord[0], snake.sprite_snake_list, False):
-		print"boom in snake!"
-
-	
 	all_sprites_list.draw(screen)
 
-	#pygame.display.update()
-
 	theScoreP1 = FONT.render(str(snake.score), True, WHITE)
-	#screen.blit(theScoreP1, 50, 5)
+	
 	screen.blit(theScoreP1, (SIZE[0] - DIMENSION_CELL*1.5 , 10))
 	pygame.display.flip()
 
 	# Limit to 60 frames per second
 	clock.tick(10)
-
-
-	#print snake[0].rect.x
-	#print snake[0].rect.y
 
 pygame.quit()
