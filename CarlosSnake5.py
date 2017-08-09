@@ -19,16 +19,14 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption("head Carlos")
 
-positions = []
-food_list = pygame.sprite.Group()
-tail_list = pygame.sprite.Group()
-all_sprites_list = pygame.sprite.Group()
+#food_list = pygame.sprite.Group()
+#all_sprites_list = pygame.sprite.Group()
 
 spaceBetweenCells = 10
 
 DIMENSION_CELL = 50
 STEP = DIMENSION_CELL
-direction = None
+#direction = None
 
 class Cell(pygame.sprite.Sprite):
 
@@ -46,15 +44,16 @@ class Cell(pygame.sprite.Sprite):
 
 class Snake (object):
 
-	def __init__(self, startX = 150, startY= 150, direction = "right"):
+	def __init__(self, startX = 150, startY = 150, direction = "right"):
 		self.coord = []
 		self.sprite_snake_list = pygame.sprite.Group()
 		self.startX = startX
 		self.startY = startY
 		self.head = Cell(self.startX, self.startY)
 		self.coord.append(self.head)
+		#self.sprite_snake_list = pygame.sprite.Group()
 		#self.sprite_snake_list.add(self.head)
-		all_sprites_list.add(self.head)
+		#all_sprites_list.add(self.head)
 		self.direction = direction
 		self.step = DIMENSION_CELL
 		self.spaceBetweenCells = 10
@@ -81,7 +80,7 @@ class Snake (object):
 			tmp = tmp - DIMENSION_CELL - self.spaceBetweenCells
 			self.coord.append(cell)
 			self.sprite_snake_list.add(cell)
-			all_sprites_list.add(cell)
+			#all_sprites_list.add(cell)
 		#print self
 
 	
@@ -139,33 +138,152 @@ class Food(pygame.sprite.Sprite):
 		self.score = 0
 
 class App(object):
-	pass
+	
+	def __init__(self):
+		self.allDone = False
+		self.gameDone = False
+		self.snake = Snake()
+		self.food = Food()
+		self.food_list = pygame.sprite.Group()
+		self.all_sprites_list = pygame.sprite.Group()
+		self.credits = 0
+	
+
+	def reInitEverything(self):
+		self.__init__()
+		"""
+		self.allDone = False
+		self.gameDone = False
+		self.snake = None
+		self.snake = Snake()
+		self.food = Food()
+		self.food_list = pygame.sprite.Group()
+		self.all_sprites_list = pygame.sprite.Group()
+		"""
+	def initEverything(self):
+		
+		self.snake.createTail()
+		self.food.rect.x = random.randrange(SIZE[0])
+		self.food.rect.y = random.randrange(SIZE[1])
+		self.food_list.add(self.food)
+		self.all_sprites_list.add(self.food)
+		self.all_sprites_list.add(self.snake.head)
+		for cell in self.snake.coord:
+			self.all_sprites_list.add(cell)
+
+	def mainLoop(self):
+
+		while not self.allDone:
+			print "Voulez-vous jouer une autre partie"
+			reponse = raw_input()
+			if reponse == "y":
+				self.reInitEverything()
+			else:
+				#allDone = True
+				break
+
+			self.initEverything()
+			while not self.gameDone:
+
+				screen.fill(BLACK)
+
+				for event in pygame.event.get():
+					if event.type == pygame.QUIT:
+						self.allDone = True
+						self.gameDone = True
+
+				keys = pygame.key.get_pressed()
+				if keys[pygame.K_ESCAPE]:
+					self.allDone = True
+					self.gameDone = True
+				elif keys[pygame.K_LEFT] and self.snake.direction != "right":
+					self.snake.direction = "left"
+				elif keys[pygame.K_RIGHT] and self.snake.direction != "left":
+					self.snake.direction = "right"
+				elif keys[pygame.K_UP] and self.snake.direction != "down":
+					self.snake.direction = "up"
+				elif keys[pygame.K_DOWN] and self.snake.direction != "up":
+					self.snake.direction = "down"
+				elif keys[pygame.K_5]:
+					print "=========================="
+					print len(self.snake.coord)
+				
+
+				#print "self.snake.coord[0]: ", self.snake.coord[0]
+				for cell in self.snake.sprite_snake_list:
+					print "cell: ", cell
+
+				if pygame.sprite.spritecollide(self.snake.coord[0], self.snake.sprite_snake_list, False):
+					print"boom in snake!"
+					self.snake.explose("Boom in snake!!!")
+					self.gameDone = True
+
+				if self.snake.isAtWall():
+					self.snake.explose("Boom in Wall!!!")
+					print"boom in wall!"
+					self.gameDone = True
+					
+				else:
+					self.snake.update()		
+				
+				if pygame.sprite.spritecollide(self.snake.coord[0], self.food_list, False):
+					coordFoodValid = False
+					print "lenght of snake: ", len(self.snake.coord)
+					newCell = Cell(self.snake.previousTail[0], self.snake.previousTail[1])
+					self.snake.coord.append(newCell)
+					self.snake.sprite_snake_list.add(newCell)
+					self.all_sprites_list.add(newCell)
+					while not coordFoodValid:
+						self.food.rect.x = random.randrange(SIZE[0] - self.food.largeur)
+						self.food.rect.y = random.randrange(SIZE[1] - self.food.largeur)
+						coordTmp = self.food.rect.x, self.food.rect.y
+						if coordTmp not in self.snake.coord:
+							coordFoodValid = True
+					self.snake.score += 10
+				
+				self.all_sprites_list.draw(screen)
+
+				theScoreP1 = FONT.render(str(self.snake.score), True, WHITE)
+				
+				screen.blit(theScoreP1, (SIZE[0] - DIMENSION_CELL*1.5 , 10))
+				pygame.display.flip()
+
+				# Limit to 60 frames per second
+				clock.tick(10)
+
+		pygame.quit()
 
 
+if __name__ == '__main__':
+    app = App()
+    app.mainLoop()
 
-done = False
 
-snake = Snake() 
-snake.createTail()
+#allDone = False
 
-food = Food()
-food.rect.x = random.randrange(SIZE[0])
-food.rect.y = random.randrange(SIZE[1])
+#snake = Snake() 
+#snake.createTail()
 
-food_list.add(food)
-all_sprites_list.add(food)
+#food = Food()
+#food.rect.x = random.randrange(SIZE[0])
+#food.rect.y = random.randrange(SIZE[1])
 
-while not done:
+#food_list.add(food)
+#all_sprites_list.add(food)
+
+"""
+
+while not allDone:
 
 	screen.fill(BLACK)
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
-			done = True
+			allDone = True
 
 	keys = pygame.key.get_pressed()
 	if keys[pygame.K_ESCAPE]:
-		done = True
+		allDone = True
 	elif keys[pygame.K_LEFT] and snake.direction != "right":
 		snake.direction = "left"
 	elif keys[pygame.K_RIGHT] and snake.direction != "left":
@@ -216,3 +334,5 @@ while not done:
 	clock.tick(10)
 
 pygame.quit()
+
+"""
