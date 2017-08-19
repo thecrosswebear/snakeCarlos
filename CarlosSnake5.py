@@ -285,12 +285,17 @@ if __name__ == '__main__':
     	for event in pygame.event.get():
     		if event.type == pygame.QUIT:
     			toutFini = True
+    		if event.type == pygame.KEYDOWN:
+	    		if event.key == pygame.K_5:
+	    			app.credits= app.credits + 1
+
     	keys = pygame.key.get_pressed()
     	if keys[pygame.K_ESCAPE]:
     		toutFini = True
-    	elif keys[pygame.K_5]:
-    		app.credits= app.credits + 1
-    		
+    	#elif keys[pygame.K_5]:
+    	#	app.credits= app.credits + 1
+    	
+    	
     	app.showStartScreen()
 		#app.mainLoop()
 
