@@ -197,17 +197,21 @@ class App(object):
 		snake = FONT_40.render("SNAKE!!!", True, GREEN)
 		credits = FONT_20.render("Credits:", True, WHITE)
 		numberCredits = FONT_20.render(str(self.credits), True, WHITE)
+		pressStart = FONT_20.render("Press Start! (1)", True, WHITE)
 		screen.blit(credits, (SIZE[0]-250,SIZE[1]-30))
 		screen.blit(numberCredits, (SIZE[0]-130, SIZE[1] -30))
 		screen.blit(snake, ((SIZE[0] - 150)/2 , SIZE[1]/4))
 		if self.credits <1:
 			screen.blit(insertCoin,((SIZE[0]- 220)/2, SIZE[1]*3/5) )
+		else:
+			screen.blit(pressStart, ((SIZE[0]- 220)/2, SIZE[1]*3/5))
 		pygame.display.flip()
 
 
 	def mainLoop(self):
-
-		screen.fill(BLACK)
+		print "start main loop"
+		#screen.fill(BLACK)
+		self.gameDone = False
 		"""
 		while not self.allDone:
 			print "Voulez-vous jouer une autre partie"
@@ -223,6 +227,7 @@ class App(object):
 		while not self.gameDone:
 
 			screen.fill(BLACK)
+			print "main loop screen"
 
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
@@ -233,6 +238,7 @@ class App(object):
 			if keys[pygame.K_ESCAPE]:
 				self.allDone = True
 				self.gameDone = True
+				return gameDone
 			elif keys[pygame.K_LEFT] and self.snake.direction != "right":
 				self.snake.direction = "left"
 			elif keys[pygame.K_RIGHT] and self.snake.direction != "left":
@@ -249,11 +255,16 @@ class App(object):
 				print"boom in snake!"
 				self.snake.explose("Boom in snake!!!")
 				self.gameDone = True
+				return self.gameDone
 
 			if self.snake.isAtWall():
 				self.snake.explose("Boom in Wall!!!")
+				print "head of snake coord: ", self.snake.head
+				#del self.snake
+				self.snake.head = Cell(150,150)
 				print"boom in wall!"
 				self.gameDone = True
+				return self.gameDone
 				
 			else:
 				self.snake.update()		
@@ -270,35 +281,37 @@ class App(object):
 			
 			screen.blit(theScoreP1, (SIZE[0] - DIMENSION_CELL*1.5 , 10))
 			pygame.display.flip()
+			print "end of main loop"
 
 			# Limit to 60 frames per second
 			clock.tick(10)
 
-		pygame.quit()
+		#pygame.quit()
 
 
 if __name__ == '__main__':
     app = App()
 
     toutFini = False
+    
     while not toutFini:
+    	app.showStartScreen()
+    	keys = pygame.key.get_pressed()
+    	if keys[pygame.K_ESCAPE]:
+    		toutFini = True
     	for event in pygame.event.get():
     		if event.type == pygame.QUIT:
     			toutFini = True
     		if event.type == pygame.KEYDOWN:
 	    		if event.key == pygame.K_5:
 	    			app.credits= app.credits + 1
+	    			print "pressed 5"
+	    		elif event.key == pygame.K_1 and app.credits>0:
+	    			print "pressed 1"
+	    			app.mainLoop()
 
-    	keys = pygame.key.get_pressed()
-    	if keys[pygame.K_ESCAPE]:
-    		toutFini = True
-    	#elif keys[pygame.K_5]:
-    	#	app.credits= app.credits + 1
-    	
-    	
-    	app.showStartScreen()
-		#app.mainLoop()
 
+    pygame.quit()	
 
 #allDone = False
 
